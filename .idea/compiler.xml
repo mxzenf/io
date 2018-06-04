@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <resourceExtensions />
+    <annotationProcessing>
+      <profile default="true" name="Default" enabled="false">
+        <processorPath useClasspath="true" />
+      </profile>
+      <profile default="false" name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="true" />
+        <module name="fileserver" />
+        <module name="Subsribe" />
+        <module name="TimeClient" />
+        <module name="TimeServer" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel target="1.8">
+      <module name="fileserver" target="1.8" />
+      <module name="netty-demo" target="1.8" />
+      <module name="Subsribe" target="1.8" />
+      <module name="TimeClient" target="1.7" />
+      <module name="TimeServer" target="1.7" />
+    </bytecodeTargetLevel>
+  </component>
+</project>

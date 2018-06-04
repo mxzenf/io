@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/Subsribe/Subsribe.iml" filepath="$PROJECT_DIR$/Subsribe/Subsribe.iml" />
+      <module fileurl="file://$PROJECT_DIR$/TimeClient/TimeClient.iml" filepath="$PROJECT_DIR$/TimeClient/TimeClient.iml" />
+      <module fileurl="file://$PROJECT_DIR$/TimeServer/TimeServer.iml" filepath="$PROJECT_DIR$/TimeServer/TimeServer.iml" />
+      <module fileurl="file://$PROJECT_DIR$/fileserver/fileserver.iml" filepath="$PROJECT_DIR$/fileserver/fileserver.iml" />
+      <module fileurl="file://$PROJECT_DIR$/netty-demo.iml" filepath="$PROJECT_DIR$/netty-demo.iml" />
+    </modules>
+  </component>
+</project>
