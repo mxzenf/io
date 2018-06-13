@@ -44,6 +44,8 @@ public class RpcClient {
                     } else if (k.isWritable()) {
                         sc = (SocketChannel)k.channel();
                         RpcResponse r = (RpcResponse)k.attachment();
+                        //判断是否是服务端执行了返回,如果是则发送空请求告知服务端可以关闭连接了
+                        //同理客户端也管理连接,避免服务端空轮训
                         if (null == r) {
                             sc.write(ByteBuffer.wrap(serializeObject.serialize(request)));
                             sc.register(selector, SelectionKey.OP_READ);
@@ -58,6 +60,7 @@ public class RpcClient {
                         sc.read(buffer);
                         buffer.flip();
                         response = (RpcResponse)serializeObject.deserialize(buffer.array());
+                        //收到请求准备发送关闭连接通知
                         SelectionKey wKey = sc.register(selector, SelectionKey.OP_WRITE);
                         wKey.attach(response);
                     } else {}
