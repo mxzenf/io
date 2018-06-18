@@ -74,8 +74,9 @@ public class RpcClient {
                         SelectionKey wKey = sc.register(selector, SelectionKey.OP_WRITE);
                         wKey.attach(response);
                     } else {}
+                    keys.remove(k);
                 }
-                keys.clear();
+
             }
         } catch (IOException e) {
             e.printStackTrace();
