@@ -36,7 +36,7 @@ public class RpcClient {
         try {
             selector = Selector.open();
             socketChannel = SocketChannel.open();
-            socketChannel.bind(new InetSocketAddress(address, port));
+            socketChannel.connect(new InetSocketAddress(address, port));
             socketChannel.configureBlocking(false);
             socketChannel.register(selector, SelectionKey.OP_CONNECT);
             SocketChannel sc;
