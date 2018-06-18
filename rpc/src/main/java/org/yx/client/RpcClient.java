@@ -2,6 +2,7 @@ package org.yx.client;
 
 import org.yx.bean.RpcRequest;
 import org.yx.bean.RpcResponse;
+import org.yx.serialize.DefaultSerializeObject;
 import org.yx.serialize.SerializeObject;
 
 import java.io.IOException;
@@ -21,6 +22,15 @@ public class RpcClient {
     private Selector selector;
     private SocketChannel socketChannel;
     SerializeObject serializeObject;
+
+    public RpcClient(){}
+
+    public RpcClient(String address, int port){
+        this.address = address;
+        this.port = port;
+        serializeObject = new DefaultSerializeObject();
+    }
+
     public RpcResponse send(RpcRequest request){
         RpcResponse response = null;
         try {
