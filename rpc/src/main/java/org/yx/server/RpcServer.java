@@ -2,6 +2,7 @@ package org.yx.server;
 
 import org.yx.bean.RpcRequest;
 import org.yx.bean.RpcResponse;
+import org.yx.serialize.DefaultSerializeObject;
 import org.yx.serialize.SerializeObject;
 
 import java.io.IOException;
@@ -27,6 +28,11 @@ public class RpcServer {
 
     public RpcServer(){}
 
+    public RpcServer(int port){
+        this.port = port;
+        serializeObject = new DefaultSerializeObject();
+    }
+
     public void init() throws IOException {
         selector = Selector.open();
         ssc = ServerSocketChannel.open();
@@ -50,12 +56,17 @@ public class RpcServer {
                     sc.configureBlocking(false);
                 } else if (k.isReadable()) {
                     sc = (SocketChannel)k.channel();
-                    SelectionKey write_key = sc.register(selector, SelectionKey.OP_WRITE);
                     ByteBuffer bb = ByteBuffer.allocate(CAPACITY);
                     bb.clear();
                     sc.read(bb);
                     bb.flip();
                     RpcRequest request = (RpcRequest)serializeObject.deserialize(bb.array());
+                    if (null == request || null == request.getId() ||
+                            request.getId().length() == 0 || "-1".equals(request.getId())){
+                        sc.close();
+                        continue;
+                    }
+                    SelectionKey write_key = sc.register(selector, SelectionKey.OP_WRITE);
                     RpcResponse response = new RpcResponse();
                     for (RpcHandler rh : handlers) {
                         rh.handle(request, response);
