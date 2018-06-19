@@ -8,7 +8,7 @@ import java.lang.reflect.Field;
  */
 public class DefaultSerializeObject implements SerializeObject {
     @Override
-    public byte[] serialize(Object o) {
+    public <T> byte[] serialize(T o) {
         if (!(o instanceof Serializable)){
             throw new RuntimeException("必须实现Serializable接口");
         }
@@ -17,7 +17,10 @@ public class DefaultSerializeObject implements SerializeObject {
         ObjectOutputStream oos = null;
         try {
             oos = new ObjectOutputStream(bos);
+//            oos = new ObjectOutputStream(bos);
             oos.writeObject(o);
+            oos.flush();
+            System.out.println("写入字节数:"+bos.size());
             return bos.toByteArray();
         } catch (Exception e) {
             e.printStackTrace();
@@ -37,12 +40,13 @@ public class DefaultSerializeObject implements SerializeObject {
     }
 
     @Override
-    public Object deserialize(byte[] bytes) {
+    public <T> T deserialize(byte[] bytes, Class<T> cls) {
         ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
         ObjectInputStream ois = null;
+        System.out.print("读取字节数"+bis.available());
         try {
             ois = new ObjectInputStream(bis);
-            return ois.readObject();
+            return (T)ois.readObject();
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("反序列化失败"+e.getMessage());
