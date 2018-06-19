@@ -62,4 +62,15 @@ public class RpcRequest implements Serializable {
     public void setId(String id) {
         this.id = id;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("请求ID:" + id + ",");
+        sb.append("接口名字:" + interfaceName + ",");
+        sb.append("参数类型:" + parameterTypes + ",");
+        sb.append("方法名字:" + serviceName + ",");
+        sb.append("参数:" + args + ".");
+        return sb.toString();
+    }
 }
