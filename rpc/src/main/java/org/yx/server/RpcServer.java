@@ -3,10 +3,14 @@ package org.yx.server;
 import org.yx.bean.RpcRequest;
 import org.yx.bean.RpcResponse;
 import org.yx.serialize.DefaultSerializeObject;
+import org.yx.serialize.ProtostuffSerialize;
 import org.yx.serialize.SerializeObject;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
 import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -33,6 +37,11 @@ public class RpcServer {
         serializeObject = new DefaultSerializeObject();
     }
 
+    public RpcServer(int port, SerializeObject serializeObject){
+        this.port = port;
+        this.serializeObject = serializeObject;
+    }
+
     public void init() throws IOException {
         selector = Selector.open();
         ssc = ServerSocketChannel.open();
@@ -52,15 +61,27 @@ public class RpcServer {
                 if (k.isAcceptable()){
                     ServerSocketChannel ss = (ServerSocketChannel)k.channel();
                     sc = ss.accept();
-                    sc.register(selector, SelectionKey.OP_READ);
                     sc.configureBlocking(false);
+                    sc.register(selector, SelectionKey.OP_READ);
                 } else if (k.isReadable()) {
                     sc = (SocketChannel)k.channel();
+//                    k.cancel();
+//                    sc.configureBlocking(true);
+//                    ObjectInputStream ois = new ObjectInputStream(sc.socket().getInputStream());
+//                    RpcRequest request = null;
+//                    try {
+//                        request = (RpcRequest)ois.readObject();
+//                    } catch (ClassNotFoundException e) {
+//                        e.printStackTrace();
+//                    }
                     ByteBuffer bb = ByteBuffer.allocate(CAPACITY);
                     bb.clear();
                     sc.read(bb);
                     bb.flip();
-                    RpcRequest request = (RpcRequest)serializeObject.deserialize(bb.array());
+                    byte[] data = new byte[bb.position()];
+                    bb.get(data);
+                    RpcRequest request = serializeObject.deserialize(data, RpcRequest.class);
+                    System.out.println("收到请求:" + request);
                     if (null == request || null == request.getId() ||
                             request.getId().length() == 0 || "-1".equals(request.getId())){
                         sc.close();
@@ -75,8 +96,7 @@ public class RpcServer {
                 } else if (k.isWritable()) {
                     sc = (SocketChannel)k.channel();
                     RpcResponse response = (RpcResponse)k.attachment();
-                    byte[] bytes = serializeObject.serialize(response);
-                    sc.write(ByteBuffer.wrap(bytes));
+                    sc.write(ByteBuffer.wrap(serializeObject.serialize(response)));
                 } else {
 
                 }
