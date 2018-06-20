@@ -6,11 +6,8 @@ import org.yx.serialize.DefaultSerializeObject;
 import org.yx.serialize.SerializeObject;
 
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
@@ -25,7 +22,7 @@ public class RpcClient {
     private int port;
     private Selector selector;
     private SocketChannel socketChannel;
-    SerializeObject serializeObject;
+    private SerializeObject serializeObject;
 
     public RpcClient(){}
 
@@ -43,14 +40,15 @@ public class RpcClient {
 
     public RpcResponse send(RpcRequest request){
         RpcResponse response = null;
+        boolean finish = false;
         try {
             selector = Selector.open();
             socketChannel = SocketChannel.open();
-            socketChannel.connect(new InetSocketAddress(address, port));
             socketChannel.configureBlocking(false);
             socketChannel.register(selector, SelectionKey.OP_CONNECT);
+            socketChannel.connect(new InetSocketAddress(address, port));
             SocketChannel sc;
-            while (true){
+            while (!finish){
                 selector.select();
                 Set<SelectionKey> keys = selector.keys();
                 if (null == keys || 0 == keys.size()) {
@@ -65,34 +63,27 @@ public class RpcClient {
                         sc.finishConnect();
 //                        sc.configureBlocking(false);
                         sc.register(selector, SelectionKey.OP_WRITE);
+                        System.out.print("连接成功");
                     } else if (k.isWritable()) {
                         sc = (SocketChannel)k.channel();
                         RpcResponse r = (RpcResponse)k.attachment();
                         //判断是否是服务端执行了返回,如果是则发送空请求告知服务端可以关闭连接了
                         //同理客户端也管理连接,避免服务端空轮训
                         if (null == r) {
-//                            Socket s = sc.socket();
-//                            ObjectOutputStream oos = new ObjectOutputStream(s.getOutputStream());
-//                            oos.writeObject(request);
-//                            oos.flush();
-//                            ByteBuffer bLen = ByteBuffer.allocate(1024);
-//                            bLen.order(ByteOrder.LITTLE_ENDIAN);
-//                            bLen.putInt(bytes.length);
-//                            bLen.flip();
-//                            sc.write(bLen);
                             sc.write(ByteBuffer.wrap(serializeObject.serialize(request)));
                             sc.register(selector, SelectionKey.OP_READ);
+                            System.out.println("发送请求成功");
                         } else {
-                            sc.write(ByteBuffer.wrap(serializeObject.serialize(quitReq())));
-                            break;
+                            sc.close();
+                            finish = true;
                         }
                     } else if (k.isReadable()){
                         sc = (SocketChannel)k.channel();
                         ByteBuffer buffer = ByteBuffer.allocate(2048);
                         buffer.clear();
-                        sc.read(buffer);
+                        int size = sc.read(buffer);
                         buffer.flip();
-                        byte[] data = new byte[buffer.position()];
+                        byte[] data = new byte[size];
                         buffer.get(data);
                         response = serializeObject.deserialize(data,RpcResponse.class);
                         //收到请求准备发送关闭连接通知
@@ -100,7 +91,7 @@ public class RpcClient {
                         wKey.attach(response);
                     } else {}
                 }
-                keys.clear();
+//                keys.clear();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -108,11 +99,6 @@ public class RpcClient {
             close();
         }
         return response;
-    }
-    public RpcRequest quitReq(){
-        RpcRequest request = new RpcRequest();
-        request.setId("-1");
-        return request;
     }
     public void close(){
         if (null != selector){
