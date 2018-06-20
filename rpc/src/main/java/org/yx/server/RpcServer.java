@@ -16,6 +16,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -27,7 +28,7 @@ public class RpcServer {
     private Selector selector;
     private ServerSocketChannel ssc;
     private int port;
-    private List<RpcHandler> handlers;
+    private List<RpcHandler> handlers = new ArrayList<RpcHandler>();
     SerializeObject serializeObject;
 
     public RpcServer(){}
@@ -76,19 +77,16 @@ public class RpcServer {
 //                    }
                     ByteBuffer bb = ByteBuffer.allocate(CAPACITY);
                     bb.clear();
-                    sc.read(bb);
+                    int size = sc.read(bb);
                     bb.flip();
-                    byte[] data = new byte[bb.position()];
+                    byte[] data = new byte[size];
                     bb.get(data);
                     RpcRequest request = serializeObject.deserialize(data, RpcRequest.class);
-                    System.out.println("收到请求:" + request);
-                    if (null == request || null == request.getId() ||
-                            request.getId().length() == 0 || "-1".equals(request.getId())){
-                        sc.close();
-                        continue;
-                    }
+//                    System.out.println("收到请求:" + request);
+
                     SelectionKey write_key = sc.register(selector, SelectionKey.OP_WRITE);
                     RpcResponse response = new RpcResponse();
+                    response.setId(request.getId());
                     for (RpcHandler rh : handlers) {
                         rh.handle(request, response);
                     }
@@ -97,6 +95,7 @@ public class RpcServer {
                     sc = (SocketChannel)k.channel();
                     RpcResponse response = (RpcResponse)k.attachment();
                     sc.write(ByteBuffer.wrap(serializeObject.serialize(response)));
+                    sc.close();
                 } else {
 
                 }
