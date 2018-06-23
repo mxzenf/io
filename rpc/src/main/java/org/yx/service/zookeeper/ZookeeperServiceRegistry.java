@@ -6,7 +6,7 @@ import org.yx.service.ServiceRegistry;
  * Created by 杨欣 on 2018/6/23.
  */
 public class ZookeeperServiceRegistry implements ServiceRegistry {
-    private ZookeeperService zookeeperService = new ZookeeperService("127.0.0.1","/zookeeper");
+    private ZookeeperService zookeeperService;
     @Override
     public void registry(String serviceName, String serviceAddress) {
        zookeeperService.createNode("/"+serviceName,serviceAddress);
