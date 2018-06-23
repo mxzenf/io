@@ -2,8 +2,6 @@ package org.yx.service.zookeeper;
 
 import org.apache.zookeeper.*;
 import org.apache.zookeeper.data.Stat;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -16,7 +14,6 @@ public class ZookeeperService implements AsyncCallback.StringCallback {
     private final static int DEFAULT_TIMEOUT = 15000;
     private String zookeeperAdd;
     private String root;
-    private static final Logger LOGGER = LoggerFactory.getLogger(ZookeeperService.class);
     private static final Charset DEFAULT_CHARSET = Charset.forName("utf8");
 
     public ZookeeperService(){}
@@ -38,6 +35,7 @@ public class ZookeeperService implements AsyncCallback.StringCallback {
     public void createNode(String nodeName, String data){
         String nodePath = root + nodeName;
         if (exists(nodePath)){
+            setNodeData(nodePath, data);//如果节点存在直接设置/覆盖数据
             return;
         }
         zk.create(nodePath, encodeData(data), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT, this,null);
@@ -99,9 +97,31 @@ public class ZookeeperService implements AsyncCallback.StringCallback {
         return data.getBytes(DEFAULT_CHARSET);
     }
 
-    public void setRoot(String root){
-        if (!exists(root)){
-            createNode(root, "");
+    /**
+     * 获取节点数据
+     * @param path
+     * @return
+     */
+    public String getData(String path){
+        try {
+            return new String(zk.getData(root+path, true, null));
+        } catch (KeeperException e) {
+            zookeeperRunException(e);
+        } catch (InterruptedException e) {
+            zookeeperRunException(e);
+        }
+        return null;
+    }
+    public void setRoot(String root) {
+        try {
+            Stat stat = zk.exists(root, false);
+            if (null == stat){
+                zk.create(root, encodeData(""), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT, this,null);
+            }
+        } catch (KeeperException e) {
+            zookeeperRunException(e);
+        } catch (InterruptedException e) {
+            zookeeperRunException(e);
         }
         this.root = root;
     }
