@@ -1,5 +1,7 @@
 package org.yx.server;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.yx.bean.RpcRequest;
 import org.yx.bean.RpcResponse;
 import org.yx.serialize.DefaultSerializeObject;
@@ -28,9 +30,9 @@ public class RpcServer {
     private Selector selector;
     private ServerSocketChannel ssc;
     private int port;
-    private List<RpcHandler> handlers = new ArrayList<RpcHandler>();
-    SerializeObject serializeObject;
-
+    private List<RpcHandler> handlers = new ArrayList<>();
+    private SerializeObject serializeObject;
+    private static final Logger LOGGER = LoggerFactory.getLogger(RpcServer.class);
     public RpcServer(){}
 
     public RpcServer(int port){
