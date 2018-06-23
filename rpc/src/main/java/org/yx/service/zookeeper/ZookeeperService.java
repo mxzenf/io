@@ -100,8 +100,8 @@ public class ZookeeperService implements AsyncCallback.StringCallback {
     }
 
     public void setRoot(String root){
-        if (!exists(this.root)){
-            createNode(this.root, "");
+        if (!exists(root)){
+            createNode(root, "");
         }
         this.root = root;
     }
